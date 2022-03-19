@@ -1,0 +1,34 @@
+---
+- name: test macadr and separate
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    users:
+      user1:
+        name: Vova
+        macad: 3459672Baaa2
+      user2:
+        name: Bob
+        macad: 3459672Ba5a2
+      user3:
+        name: Sam
+        macad: d5e6f37890K3
+
+           
+  tasks:
+    - name: check macad 12_0-9_a-f_A-F
+      debug:
+        msg: "{{ client.value.macad | checkmac_filter() }}"
+      loop: "{{ lookup('dict', users) }}"
+      loop_control:
+        loop_var: client
+        pause: 2
+          
+   
+   
+      # loop:
+      #   - 3459672Ba5a2
+      #   - d5e6f37890K3
+
+   

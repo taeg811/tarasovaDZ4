@@ -1,0 +1,28 @@
+---
+- name: Check site's availability
+  hosts: web
+  connection: local
+  gather_facts: false
+ 
+  tasks:
+  #   - name: healthcheck
+  #     healthcheck_py:
+  #       addr: name1
+  #       tls: false
+  #     register: py_res
+
+  #   - name: print py result
+  #     debug:
+  #       msg: "{{ py_res }}"
+
+  - name: healthcheck bash
+    healthcheck_sh:
+      addr: "{{ inventory_hostname }}"
+      tls: true
+    register: res_sh
+
+  - name: print sh result
+    debug:
+      msg: "{{ res_sh }}"
+
+  
