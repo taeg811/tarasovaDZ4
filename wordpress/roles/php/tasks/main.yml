@@ -1,0 +1,56 @@
+---
+#tasks file for php  
+
+- name: Add in repo directory
+  copy:
+    src: remi-safe.repo
+    dest: /etc/yum.repos.d/remi-safe.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: create php repo definition /etc/yum.repos.d/ 
+  copy:
+    src: remi-php74.repo
+    dest: /etc/yum.repos.d/remi-php74.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Add in repo directory
+  copy:
+    src: epel.repo
+    dest: /etc/yum.repos.d/epel.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install php packages from php_packages_list
+  yum:
+    #enablerepo: "epel, remi, remi-php74"
+    name: "{{ php_packages_list }}"
+    update_cache: true
+    state: present
+    
+
+- name: Remove default /etc/php-fpm.d/www.conf file
+  file:
+    path: /etc/php-fpm.d/www.conf
+    state: absent
+
+- name: Add wordpress.conf file
+  copy:
+    src: wordpress.conf
+    dest: /etc/php-fpm.d/wordpress.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Start php-fpm Service
+  service:
+    name: php-fpm
+    state: started
+    enabled: true
+      
+
+

@@ -1,0 +1,101 @@
+---
+#tasks file for nginx
+
+- name: create nginx repo definition
+  copy:
+    src: nginx.repo
+    dest: /etc/yum.repos.d/nginx.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: install nginx
+  yum:
+    name: nginx
+    update_cache: true
+    state: present
+    
+- name: create dir /etc/ssl/private for .pem  key
+  ansible.builtin.file:
+    path: /etc/ssl/private
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+- name: create dir /etc/ssl/crt  for .crt 
+  ansible.builtin.file:
+    path: /etc/ssl/crt
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+- name: create dir /etc/ssl/csr  for .csr
+  ansible.builtin.file:
+    path: /etc/ssl/csr
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'        
+
+- name: copy cert
+  copy:
+    src: "{{ inventory_hostname }}.crt"
+    dest: "/etc/ssl/crt/{{ inventory_hostname }}.crt"
+    owner: nginx
+    group: nginx
+    mode: 0444
+- name: copy private key
+  copy:
+    src: "{{ inventory_hostname }}_priv.pem"
+    dest: "/etc/ssl/private/{{ inventory_hostname }}_priv.pem"
+    owner: root
+    group: nginx 
+    mode: 0440      
+- name: copy csr
+  copy:
+    src: "{{ inventory_hostname }}.csr"
+    dest: "/etc/ssl/csr/{{ inventory_hostname }}.csr"
+    owner: root
+    group: nginx
+    mode: 0440
+
+
+- name: copy Wordpress config
+  template:
+    src: templates/nginx-wordpress.conf.j2
+    dest: /etc/nginx/conf.d/nginx-wordpress.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx
+  
+- name: ensure nginx is enabled and started
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: insert firewalld rule for nginx  open ports 443
+  firewalld:
+    port: "{{ nginx_tls_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+  #ignore_errors: true
+
+- name: insert firewalld rule for nginx  open ports 80
+  firewalld:
+    port: "{{ nginx_no_tls_port }}/tcp"
+    permanent: true
+    state: enabled
+    immediate: true
+ # ignore_errors: true
+
+- name: check web site from control server   
+  uri:
+    url: "https://{{ inventory_hostname }}:{{ nginx_tls_port }}"
+    return_content: true
+    validate_certs: false
+    #connection: local
+  register: example_webpage_out
+  failed_when: example_webpage_out.status != 200

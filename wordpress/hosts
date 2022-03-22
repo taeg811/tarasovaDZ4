@@ -1,0 +1,8 @@
+localhost ansible_connection=local ansible_python_interpreter=/home/ansible/ansivenv/bin/python3
+#localhost ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+
+[nodes]
+node1 ansible_host=10.73.1.108
+
+[web]
+fw.uven.ru

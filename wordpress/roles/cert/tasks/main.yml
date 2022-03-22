@@ -1,0 +1,31 @@
+---
+# tasks file for cert
+
+- debug:
+    msg: "This is {{ inventory_hostname }}"
+
+- name: Generate an OpenSSL private key with the default values (4096 bits, RSA)
+#  become: false 
+  openssl_privatekey:
+    path: "./files/{{ inventory_hostname }}_priv.pem"
+  delegate_to: localhost
+    
+- name: Generate an OpenSSL Certificate Signing Request with Subject information
+#  become: false
+  openssl_csr:
+    path: "./files/{{ inventory_hostname }}.csr"
+    privatekey_path: "./files/{{ inventory_hostname }}_priv.pem"
+    country_name: RU
+    organization_name: university
+    email_address: lena@uven.ru
+    common_name: "{{ inventory_hostname }}"
+  delegate_to: localhost
+
+- name: Generate a Self Signed OpenSSL certificate
+#  become: false
+  openssl_certificate:
+    path: "./files/{{ inventory_hostname }}.crt"
+    privatekey_path: "./files/{{ inventory_hostname }}_priv.pem"
+    csr_path: "./files/{{ inventory_hostname }}.csr"
+    provider: selfsigned
+  delegate_to: localhost

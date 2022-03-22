@@ -1,0 +1,14 @@
+---
+# handlers file for wordpr
+# - include: nginx/handlers/main.yaml
+# - include: php/handlers/main.yaml
+
+- name: restart php-fpm
+  service:
+    name: php-fpm
+    state: restarted
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted

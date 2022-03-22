@@ -1,0 +1,7 @@
+---
+# vars file for nginx
+nginx_tls_port: 443
+nginx_no_tls_port: 80
+server_hostname: "{{ inventory_hostname }}"
+cert_path: /etc/ssl/crt/{{ inventory_hostname }}.crt
+privatekey_path: /etc/ssl/private/{{ inventory_hostname }}_priv.pem    

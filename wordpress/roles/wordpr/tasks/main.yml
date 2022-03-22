@@ -1,0 +1,81 @@
+---
+# tasks file for wordpr
+
+- name: Download wordpress
+  get_url:
+    url: https://wordpress.org/wordpress-"{{ wp_version }}".tar.gz
+    dest: /srv/
+    #mode: 0644
+    checksum: "{{ wp_checksum }}"
+
+- name: Unarchivation wp.gz file
+  unarchive:
+    src: /srv/wordpress-{{ wp_version }}.tar.gz
+    dest: /srv/
+    remote_src: yes
+
+- name: Add group wordpress
+  group: 
+    name: wordpress
+    state: present
+
+- name: Add user wordpress
+  user:
+    name: wordpress
+    comment: Wordpress user
+    groups: wordpress
+    home: /srv/wordpress
+    shell: /sbin/nologin
+    state: present
+    # create_home: no
+    # state: absent
+    # remove: yes 
+
+- name: Copy to /srv/wordpress/wp-config.php
+  copy:
+    src: templates/wp-config.php
+    dest: /srv/wordpress/wp-config.php
+    owner: wordpress
+    group: wordpress
+    mode: 0644
+  notify: restart nginx
+
+- name: reset db_name param
+  lineinfile: dest=/srv/wordpress/wp-config.php
+              regexp='DB_NAME'
+              insertbefore=BOF 
+              line='define(\'DB_NAME\', \'{{ wp_db_name }}\');'
+
+- name: reset db_user param
+  lineinfile: dest=/srv/wordpress/wp-config.php
+              regexp='DB_USER'
+              insertbefore=BOF 
+              line='define(\'DB_USER\', \'{{ wp_db_user }}\');'
+
+- name: reset db_pass param
+  lineinfile: dest=/srv/wordpress/wp-config.php
+              regexp='DB_PASSWORD'
+              insertbefore=BOF 
+              line='define(\'DB_PASSWORD\', \'{{ wp_db_password }}\');'
+
+
+# - name: Reset param for db-connect
+#   lineinfile:
+#     path: /srv/wordpress/wp-config.php
+#     regexp: "{{item.regexp}}"
+#     line: "{{item.line}}"
+#   with_items:
+#     - {'regexp': "define\\( 'DB_NAME', '(.)+' \\);", 'line': "define( 'DB_NAME', 'wordpr' );"}
+#     - {'regexp': "define\\( 'DB_USER', '(.)+' \\);", 'line': "define( 'DB_USER', 'wpuser' );"}
+#     - {'regexp': "define\\( 'DB_PASSWORD', '(.)+' \\);", 'line': "define( 'DB_PASSWORD', 'Karantinumus2219' );"}
+
+- name: update ownership /srv/wordpress
+  file:
+    path: /srv/wordpress
+    state: directory
+    recurse: yes
+    owner: wordpress
+    group: wordpress
+  notify: 
+    - restart php-fpm
+    - restart nginx

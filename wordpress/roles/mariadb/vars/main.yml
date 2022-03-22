@@ -1,0 +1,7 @@
+---
+# vars file for mariadb
+mysql_port: 3306
+password1: Tironix22
+wp_db_name: wordpr
+wp_db_user: wpuser
+wp_db_password: Karantinumus2219
